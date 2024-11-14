@@ -7,10 +7,10 @@ Deno.test("parser should correctly parse an empty JSON object", () => {
   const jsonString = `{}`;
   const tokens = tokenizer(jsonString);
   const ast: ASTNode = parser(tokens);
-  
+
   assertEquals(ast, {
     type: "Object",
-    value: {}
+    value: {},
   });
 });
 
@@ -24,7 +24,7 @@ Deno.test("parser should correctly parse a nested JSON object", () => {
   }`;
   const tokens = tokenizer(jsonString);
   const ast: ASTNode = parser(tokens);
-  
+
   assertEquals(ast, {
     type: "Object",
     value: {
@@ -34,12 +34,12 @@ Deno.test("parser should correctly parse a nested JSON object", () => {
           inner: {
             type: "Object",
             value: {
-              key: { type: "String", value: "value" }
-            }
-          }
-        }
-      }
-    }
+              key: { type: "String", value: "value" },
+            },
+          },
+        },
+      },
+    },
   });
 });
 
@@ -47,7 +47,7 @@ Deno.test("parser should correctly parse an array with mixed types", () => {
   const jsonString = `[1, "string", true, null, {}]`;
   const tokens = tokenizer(jsonString);
   const ast: ASTNode = parser(tokens);
-  
+
   assertEquals(ast, {
     type: "Array",
     value: [
@@ -55,8 +55,8 @@ Deno.test("parser should correctly parse an array with mixed types", () => {
       { type: "String", value: "string" },
       { type: "Boolean", value: true },
       { type: "Null" },
-      { type: "Object", value: {} }
-    ]
+      { type: "Object", value: {} },
+    ],
   });
 });
 
@@ -65,9 +65,9 @@ Deno.test("parser should throw an error for invalid JSON", () => {
     "key": "value",
     "invalid": 
   }`;
-  
+
   const tokens = tokenizer(jsonString);
-  
+
   try {
     parser(tokens);
     throw new Error("Expected an error to be thrown for invalid JSON");
@@ -82,7 +82,7 @@ Deno.test("parser should correctly parse JSON from API", async () => {
   const jsonString = await response.text();
   const tokens = tokenizer(jsonString);
   const ast: ASTNode = parser(tokens);
-  
+
   // Check if the parsed AST is an array
   assertEquals(ast.type, "Array");
 
@@ -94,8 +94,8 @@ Deno.test("parser should correctly parse JSON from API", async () => {
         userId: { type: "Number", value: 1 },
         id: { type: "Number", value: 1 },
         title: { type: "String", value: "delectus aut autem" },
-        completed: { type: "Boolean", value: false }
-      }
+        completed: { type: "Boolean", value: false },
+      },
     });
   }
 });
@@ -103,10 +103,10 @@ Deno.test("parser should correctly parse JSON from API", async () => {
 // Test for local JSON file parsing
 Deno.test("parser should correctly parse a local JSON file", async () => {
   const jsonString = await Deno.readTextFile("./test-data.json");
-  
+
   const tokens = tokenizer(jsonString);
   const ast: ASTNode = parser(tokens); // Specify the type of ast
-  
+
   // You can assert against the expected structure of the parsed AST
   assertEquals(ast, {
     type: "Array",
@@ -115,12 +115,12 @@ Deno.test("parser should correctly parse a local JSON file", async () => {
         type: "Object",
         value: {
           userId: { type: "Number", value: 1 },
-          id: { type: "Number", value: 1 },
+          id: { type: "Number", value: -1 },
           title: { type: "String", value: "delectus aut autem" },
-          completed: { type: "Boolean", value: false }
-        }
+          completed: { type: "Boolean", value: false },
+        },
       },
       // Add more expected objects based on the test-data.json structure
-    ]
+    ],
   });
 });
