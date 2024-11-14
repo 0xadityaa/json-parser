@@ -1,6 +1,5 @@
 import type { ASTNode, Token } from "./types.ts";
 
-//parser.ts
 export const parser = (tokens: Token[]): ASTNode => {
   if (!tokens.length) {
     throw new Error("Nothing to parse. Exiting!");
@@ -35,21 +34,21 @@ export const parser = (tokens: Token[]): ASTNode => {
 
   function parseObject() {
     const node: ASTNode = { type: "Object", value: {} };
-    let token = advance(); // Eat '{'
+    let token = advance();
 
     while (token.type !== "BraceClose") {
       if (token.type === "String") {
         const key = token.value;
-        token = advance(); // Eat key
+        token = advance();
         if (token.type !== "Colon") throw new Error("Expected : in key-value pair");
-        token = advance(); // Eat ':'
-        const value = parseValue(); // Recursively parse the value
+        token = advance();
+        const value = parseValue();
         node.value[key] = value;
       } else {
         throw new Error(`Expected String key in object. Token type: ${token.type}`);
       }
-      token = advance(); // Eat value or ','
-      if (token.type === "Comma") token = advance(); // Eat ',' if present
+      token = advance();
+      if (token.type === "Comma") token = advance();
     }
 
     return node;
@@ -57,14 +56,14 @@ export const parser = (tokens: Token[]): ASTNode => {
 
   function parseArray() {
     const node: ASTNode = { type: "Array", value: [] };
-    let token = advance(); // Eat '{'
+    let token = advance();
 
     while (token.type !== "BracketClose") {
       const value = parseValue();
       node.value.push(value);
 
-      token = advance(); // Eat value or ','
-      if (token.type === "Comma") token = advance(); // Eat ',' if present
+      token = advance();
+      if (token.type === "Comma") token = advance();
     }
 
     return node;
