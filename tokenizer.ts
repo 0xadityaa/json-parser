@@ -59,7 +59,19 @@ export const tokenizer = (input: string): Token[] => {
             let val = "";
             char = input[++currLine];
             while (char !== '"') {
-                val += char;
+                if (char === "\\") { // Check for escape character
+                    char = input[++currLine]; // Move to the next character
+                    if (char === "n") val += "\n"; // Handle newline
+                    else if (char === "t") val += "\t"; // Handle tab
+                    else if (char === "r") val += "\r"; // Handle carriage return
+                    else if (char === "b") val += "\b"; // Handle backspace
+                    else if (char === "f") val += "\f"; // Handle form feed
+                    else if (char === '"') val += '"'; // Handle escaped double quote
+                    else if (char === "\\") val += "\\"; // Handle escaped backslash
+                    else val += char; // Handle any other character as is
+                } else {
+                    val += char; // Normal character
+                }
                 char = input[++currLine];
             }
             currLine++;

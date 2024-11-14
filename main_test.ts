@@ -105,9 +105,8 @@ Deno.test("parser should correctly parse a local JSON file", async () => {
   const jsonString = await Deno.readTextFile("./test-data.json");
 
   const tokens = tokenizer(jsonString);
-  const ast: ASTNode = parser(tokens); // Specify the type of ast
+  const ast: ASTNode = parser(tokens);
 
-  // You can assert against the expected structure of the parsed AST
   assertEquals(ast, {
     type: "Array",
     value: [
@@ -116,11 +115,10 @@ Deno.test("parser should correctly parse a local JSON file", async () => {
         value: {
           userId: { type: "Number", value: 1 },
           id: { type: "Number", value: -1 },
-          title: { type: "String", value: "delectus aut autem" },
+          title: { type: "String", value: 'delectus\n\t" aut autem' },
           completed: { type: "Boolean", value: false },
         },
       },
-      // Add more expected objects based on the test-data.json structure
     ],
   });
 });
