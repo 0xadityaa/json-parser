@@ -122,3 +122,200 @@ Deno.test("parser should correctly parse a local JSON file", async () => {
     ],
   });
 });
+
+Deno.test("parser should correctly parse a deeply nested JSON object", () => {
+  const jsonString = `{
+    "level1": {
+      "level2": {
+        "level3": {
+          "level4": {
+            "key": "value"
+          }
+        }
+      }
+    }
+  }`;
+  const tokens = tokenizer(jsonString);
+  const ast: ASTNode = parser(tokens);
+
+  assertEquals(ast, {
+    type: "Object",
+    value: {
+      level1: {
+        type: "Object",
+        value: {
+          level2: {
+            type: "Object",
+            value: {
+              level3: {
+                type: "Object",
+                value: {
+                  level4: {
+                    type: "Object",
+                    value: {
+                      key: { type: "String", value: "value" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+});
+
+// Test for an empty array
+Deno.test("parser should correctly parse an empty array", () => {
+  const jsonString = `[]`;
+  const tokens = tokenizer(jsonString);
+  const ast: ASTNode = parser(tokens);
+
+  assertEquals(ast, {
+    type: "Array",
+    value: [],
+  });
+});
+
+// Test for an empty object
+Deno.test("parser should correctly parse an empty object", () => {
+  const jsonString = `{}`;
+  const tokens = tokenizer(jsonString);
+  const ast: ASTNode = parser(tokens);
+
+  assertEquals(ast, {
+    type: "Object",
+    value: {},
+  });
+});
+
+// Test for an array of mixed types with nested objects
+Deno.test("parser should correctly parse an array of mixed types with nested objects", () => {
+  const jsonString =
+    `[{"key1": "value1"}, 42, false, null, {"key2": [1, 2, 3]}]`;
+  const tokens = tokenizer(jsonString);
+  const ast: ASTNode = parser(tokens);
+
+  assertEquals(ast, {
+    type: "Array",
+    value: [
+      { type: "Object", value: { key1: { type: "String", value: "value1" } } },
+      { type: "Number", value: 42 },
+      { type: "Boolean", value: false },
+      { type: "Null" },
+      {
+        type: "Object",
+        value: {
+          key2: {
+            type: "Array",
+            value: [
+              { type: "Number", value: 1 },
+              { type: "Number", value: 2 },
+              { type: "Number", value: 3 },
+            ],
+          },
+        },
+      },
+    ],
+  });
+});
+
+// Test for JSON with special characters
+Deno.test("parser should correctly parse JSON with special characters", () => {
+  const jsonString =
+    `{"key": "value with special characters: \\"quotes\\", \\\\backslashes"}`;
+  const tokens = tokenizer(jsonString);
+  const ast: ASTNode = parser(tokens);
+
+  assertEquals(ast, {
+    type: "Object",
+    value: {
+      key: {
+        type: "String",
+        value: 'value with special characters: "quotes", \\backslashes',
+      },
+    },
+  });
+});
+
+// Test for JSON with trailing commas
+Deno.test("parser should throw an error for JSON with trailing commas", () => {
+  const jsonString = `{"key": "value",}`;
+  const tokens = tokenizer(jsonString);
+
+  try {
+    parser(tokens);
+    throw new Error("Unexpected token type: BraceClose");
+  } catch (e) {
+    assertEquals((e as Error).message, "Unexpected token type: BraceClose");
+  }
+});
+
+// Test for JSON with a single quote instead of double quotes
+Deno.test("parser should throw an error for JSON with single quotes", () => {
+  const jsonString = `{'key': 'value'}`;
+
+  try {
+    const tokens = tokenizer(jsonString);
+    parser(tokens);
+    throw new Error("Expected an error to be thrown for single quotes");
+  } catch (e) {
+    assertEquals((e as Error).message, "Unexpected character: '");
+  }
+});
+
+// Test for JSON with unescaped special characters
+Deno.test("parser should throw an error for JSON with unescaped special characters", () => {
+  const jsonString = `{"key": "value with "quotes""}`;
+
+  try {
+    const tokens = tokenizer(jsonString);
+    parser(tokens);
+    throw new Error("Expected an error to be thrown for unescaped quotes");
+  } catch (e) {
+    assertEquals((e as Error).message, "Unexpected value: quotes");
+  }
+});
+
+// Test for JSON with missing closing brackets
+Deno.test("parser should throw an error for JSON with missing closing brackets", () => {
+  const jsonString = `{"key": "value"`;
+  const tokens = tokenizer(jsonString);
+
+  try {
+    parser(tokens);
+    throw new Error("Expected an error to be thrown for missing brackets");
+  } catch (e) {
+    assertEquals(
+      (e as Error).message,
+      "Cannot read properties of undefined (reading 'type')",
+    );
+  }
+});
+
+// Test for JSON with invalid number format
+Deno.test("parser should throw an error for JSON with invalid number format", () => {
+  const jsonString = `{"key": 1.2.3}`;
+
+  try {
+    const tokens = tokenizer(jsonString);
+    parser(tokens);
+    throw new Error("Expected an error to be thrown for invalid number format");
+  } catch (e) {
+    assertEquals((e as Error).message, "Unexpected character: .");
+  }
+});
+
+// Test for JSON with a non-JSON value
+Deno.test("parser should throw an error for JSON with a non-JSON value", () => {
+  const jsonString = `{"key": undefined}`;
+
+  try {
+    const tokens = tokenizer(jsonString);
+    parser(tokens);
+    throw new Error("Expected an error to be thrown for non-JSON value");
+  } catch (e) {
+    assertEquals((e as Error).message, "Unexpected value: undefined");
+  }
+});
