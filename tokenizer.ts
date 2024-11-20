@@ -44,13 +44,57 @@ export const tokenizer = (input: string): Token[] => {
             continue;
         }
 
-        if (char === "-") {
-            let val = "-";
-            char = input[++currLine];
-            while (/[\d]/.test(char)) {
+        // Updated number handling
+        if (char === "-" || (char >= "0" && char <= "9")) {
+            let val = "";
+            if (char === "-") {
                 val += char;
                 char = input[++currLine];
             }
+
+            if (char === "0") {
+                val += char;
+                char = input[++currLine];
+                if (char >= "0" && char <= "9") {
+                    throw new Error("Leading zeros not allowed");
+                }
+            } else if (char >= "1" && char <= "9") {
+                while (char >= "0" && char <= "9") {
+                    val += char;
+                    char = input[++currLine];
+                }
+            } else if (char === "-") {
+                throw new Error("Invalid number format");
+            }
+
+            if (char === ".") {
+                val += char;
+                char = input[++currLine];
+                if (!(char >= "0" && char <= "9")) {
+                    throw new Error("Invalid fraction format");
+                }
+                while (char >= "0" && char <= "9") {
+                    val += char;
+                    char = input[++currLine];
+                }
+            }
+
+            if (char === "e" || char === "E") {
+                val += char;
+                char = input[++currLine];
+                if (char === "+" || char === "-") {
+                    val += char;
+                    char = input[++currLine];
+                }
+                if (!(char >= "0" && char <= "9")) {
+                    throw new Error("Invalid exponent format");
+                }
+                while (char >= "0" && char <= "9") {
+                    val += char;
+                    char = input[++currLine];
+                }
+            }
+
             tokens.push({ type: "Number", value: val });
             continue;
         }
@@ -58,21 +102,67 @@ export const tokenizer = (input: string): Token[] => {
         if (char === '"') {
             let val = "";
             char = input[++currLine];
-            while (char !== '"') {
-                if (char === "\\") { // Check for escape character
-                    char = input[++currLine]; // Move to the next character
-                    if (char === "n") val += "\n"; // Handle newline
-                    else if (char === "t") val += "\t"; // Handle tab
-                    else if (char === "r") val += "\r"; // Handle carriage return
-                    else if (char === "b") val += "\b"; // Handle backspace
-                    else if (char === "f") val += "\f"; // Handle form feed
-                    else if (char === '"') val += '"'; // Handle escaped double quote
-                    else if (char === "\\") val += "\\"; // Handle escaped backslash
-                    else val += char; // Handle any other character as is
+            while (
+                char !== '"' || (currLine > 0 && input[currLine - 1] === "\\")
+            ) {
+                if (char === "\\") {
+                    char = input[++currLine];
+                    switch (char) {
+                        case '"':
+                        case "\\":
+                        case "/": {
+                            val += char;
+                            break;
+                        }
+                        case "b": {
+                            val += "\b";
+                            break;
+                        }
+                        case "f": {
+                            val += "\f";
+                            break;
+                        }
+                        case "n": {
+                            val += "\n";
+                            break;
+                        }
+                        case "r": {
+                            val += "\r";
+                            break;
+                        }
+                        case "t": {
+                            val += "\t";
+                            break;
+                        }
+                        case "u": {
+                            const hexCode = input.slice(
+                                currLine + 1,
+                                currLine + 5,
+                            );
+                            if (!/^[0-9a-fA-F]{4}$/.test(hexCode)) {
+                                throw new Error(
+                                    "Invalid unicode escape sequence",
+                                );
+                            }
+                            val += String.fromCharCode(parseInt(hexCode, 16));
+                            currLine += 4;
+                            break;
+                        }
+                        default: {
+                            throw new Error(
+                                `Invalid escape sequence: \\${char}`,
+                            );
+                        }
+                    }
+                } else if (char.charCodeAt(0) <= 0x1F) {
+                    throw new Error("Unescaped control character in string");
                 } else {
-                    val += char; // Normal character
+                    val += char;
                 }
                 char = input[++currLine];
+                if (currLine >= input.length) {
+                    throw new Error("Unterminated string");
+                }
             }
             currLine++;
             tokens.push({ type: "String", value: val });
