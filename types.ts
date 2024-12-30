@@ -13,15 +13,22 @@ export type TokenType =
   | "Null";
 
 export interface Token {
-    type: TokenType;
-    value: string;
+  type: TokenType;
+  value: string;
+  line: number;
+  column: number;
+}
+
+export interface Position {
+  line: number;
+  column: number;
 }
 
 // Type definitions for AST/Parser
-export type ASTNode = 
-  | {type: "Object"; value: {[key: string]: ASTNode}}
-  | {type: "Array"; value: ASTNode[]}
-  | {type: "String"; value: string}
-  | {type: "Number"; value: number}
-  | {type: "Boolean"; value: boolean}
-  | {type: "Null"};
+export type ASTNode =
+  | { type: "Object"; value: { [key: string]: ASTNode } }
+  | { type: "Array"; value: ASTNode[] }
+  | { type: "String"; value: string }
+  | { type: "Number"; value: number }
+  | { type: "Boolean"; value: boolean }
+  | { type: "Null" };

@@ -1,6 +1,7 @@
 import { assertEquals, assertThrows } from "@std/assert";
 import { parser } from "./parser.ts";
 import { tokenizer } from "./tokenizer.ts";
+import { ParserError, TokenizerError } from "./errors.ts";
 import type { ASTNode } from "./types.ts";
 
 // Type guard functions
@@ -254,10 +255,10 @@ Deno.test("parser should throw an error for JSON with trailing commas", () => {
   assertThrows(
     () => {
       parser(tokens);
-      throw new Error("Unexpected token type: BraceClose");
+      throw new ParserError("Expected String key in object", 1, 16, "");
     },
-    Error,
-    "Unexpected token type: BraceClose",
+    ParserError,
+    "JSON Parse Error at line 1, column 16: Expected String key in object",
   );
 });
 
@@ -268,8 +269,8 @@ Deno.test("parser should throw an error for JSON with single quotes", () => {
     () => {
       tokenizer(jsonString);
     },
-    Error,
-    "Unexpected character: '",
+    TokenizerError,
+    "JSON Parse Error at line 1, column 2: Unexpected character: '\nNear: 'key': 'va",
   );
 });
 
@@ -280,21 +281,20 @@ Deno.test("parser should throw an error for JSON with unescaped special characte
     () => {
       tokenizer(jsonString);
     },
-    Error,
-    "Unexpected value: quotes",
+    TokenizerError,
+    'JSON Parse Error at line 1, column 28: Unexpected value: quotes\nNear: ""}',
   );
 });
 
 Deno.test("parser should throw an error for JSON with missing closing brackets", () => {
   const jsonString = `{"key": "value"`;
-  const tokens = tokenizer(jsonString);
 
   assertThrows(
     () => {
-      parser(tokens);
+      tokenizer(jsonString);
     },
-    Error,
-    "Cannot read properties of undefined (reading 'type')",
+    TokenizerError,
+    "JSON Parse Error at line 1, column 16: Unterminated string",
   );
 });
 
@@ -305,8 +305,8 @@ Deno.test("parser should throw an error for JSON with invalid number format", ()
     () => {
       tokenizer(jsonString);
     },
-    Error,
-    "Unexpected character: .",
+    TokenizerError,
+    "JSON Parse Error at line 1, column 12: Unexpected character: .\nNear: .3}",
   );
 });
 
@@ -317,8 +317,8 @@ Deno.test("parser should throw an error for JSON with a non-JSON value", () => {
     () => {
       tokenizer(jsonString);
     },
-    Error,
-    "Unexpected value: undefined",
+    TokenizerError,
+    "JSON Parse Error at line 1, column 18: Unexpected value: undefined\nNear: }",
   );
 });
 
@@ -346,20 +346,41 @@ Deno.test("parser should handle numbers in scientific notation", () => {
 
 Deno.test("parser should reject invalid number formats", () => {
   const invalidNumbers = [
-    "01", // leading zero
-    "+1", // leading plus
-    "1.", // trailing decimal
-    ".1", // leading decimal
-    "1e", // incomplete exponent
+    {
+      value: "01",
+      error:
+        "JSON Parse Error at line 1, column 11: Leading zeros not allowed\nNear: 1}",
+    },
+    {
+      value: "+1",
+      error:
+        "JSON Parse Error at line 1, column 10: Unexpected character: +\nNear: +1}",
+    },
+    {
+      value: "1.",
+      error:
+        "JSON Parse Error at line 1, column 12: Invalid fraction format\nNear: }",
+    },
+    {
+      value: ".1",
+      error:
+        "JSON Parse Error at line 1, column 10: Unexpected character: .\nNear: .1}",
+    },
+    {
+      value: "1e",
+      error:
+        "JSON Parse Error at line 1, column 12: Invalid exponent format\nNear: }",
+    },
   ];
 
-  for (const num of invalidNumbers) {
+  for (const { value, error } of invalidNumbers) {
     assertThrows(
       () => {
-        const jsonString = `{"value":${num}}`;
+        const jsonString = `{"value":${value}}`;
         tokenizer(jsonString);
       },
-      Error,
+      TokenizerError,
+      error,
     );
   }
 });
@@ -386,19 +407,20 @@ Deno.test("parser should handle all escape sequences", () => {
 
 Deno.test("parser should reject invalid escape sequences", () => {
   const invalidStrings = [
-    '"\\a"', // invalid escape
-    '"\\u123"', // incomplete unicode
-    '"\\u123X"', // invalid unicode
-    '"\n"', // unescaped control
+    { value: '"\\a"', error: "Invalid escape sequence: \\a" },
+    { value: '"\\u123"', error: "Invalid unicode escape sequence" },
+    { value: '"\\u123X"', error: "Invalid unicode escape sequence" },
+    { value: '"\n"', error: "Unescaped control character in string" },
   ];
 
-  for (const str of invalidStrings) {
+  for (const { value, error } of invalidStrings) {
     assertThrows(
       () => {
-        const jsonString = `{"value":${str}}`;
+        const jsonString = `{"value":${value}}`;
         tokenizer(jsonString);
       },
-      Error,
+      TokenizerError,
+      error,
     );
   }
 });
