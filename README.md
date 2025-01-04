@@ -82,15 +82,15 @@ deno install
      ```
    - **For local json file**
      ```bash
-     deno run --allow-read main.ts ./data.json
+     deno run --allow-read main.ts ./data.json -w
      ```
    - **For api endpoint**
      ```bash
-     deno run --allow-net main.ts https://api.example.com/data.json
+     deno run --allow-net main.ts https://api.example.com/data.json -w
      ```
-     - **For prettify json**
+   - **For prettify json**
      ```bash
-     deno run --allow-read main.ts --pretty ./data.json
+     deno run --allow-read main.ts --pretty ./data.json -w
      ```
 
 ## Running Tests
@@ -104,3 +104,4 @@ deno test --allow-read --allow-net main_test.ts
 ```
 
 #### Test coverage profile
+<img width="367" alt="errors ts" src="https://github.com/user-attachments/assets/359f25ea-0cfe-432d-9651-f3752f10b001" />
