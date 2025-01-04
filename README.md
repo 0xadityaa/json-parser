@@ -3,7 +3,7 @@
 This project is a simple JSON parser built using **Deno** + **Typescript**. It
 includes a tokenizer that breaks down JSON strings into tokens, a parser that
 converts those tokens into an Abstract Syntax Tree (AST), and a set of tests to
-ensure the parser follows all the grammer for JSON defined in the
+ensure the parser follows all the grammar for JSON defined in the
 [_ECMA-404 The JSON Data Interchange Standard_](https://www.json.org/json-en.html).
 You can parse local JSON files as well as the JSON from an api endpoint.
 
@@ -13,7 +13,7 @@ You can parse local JSON files as well as the JSON from an api endpoint.
 /json-parser
       ├── main.ts          # Entry point for the application
       ├── parser.ts        # Contains the parser logic
-      ├── tokenizer.ts      # Contains the tokenizer logic
+      ├── tokenizer.ts     # Contains the tokenizer logic
       ├── types.ts         # Type definitions for tokens and AST nodes
       └── utils.ts         # Utility functions for type checking
       │
@@ -21,7 +21,7 @@ You can parse local JSON files as well as the JSON from an api endpoint.
       └── test-data.json   # Sample JSON data for testing
       │
       ├── deno.json                # Deno configuration file
-      ├── .vscode/settings.json     # VSCode settings for Deno
+      ├── .vscode/settings.json    # VSCode settings for Deno
       └── deno.lock                # Deno lock file for dependencies
 ```
 
@@ -103,5 +103,15 @@ the _ECMA-404 The JSON Data Interchange Standard_ there are tests defined in
 deno test --allow-read --allow-net main_test.ts
 ```
 
-#### Test coverage profile
+To generate/check test coverage, run following command:
+
+```bash
+deno test --allow-read --allow-net main_test.ts --coverage=cov_profile && deno coverage cov_profile
+```
+
+##### Test coverage profile
+
+Coverage report will be generated in `cov_profile` directory, and output should
+look like this:
+
 <img width="367" alt="errors ts" src="https://github.com/user-attachments/assets/359f25ea-0cfe-432d-9651-f3752f10b001" />
