@@ -75,7 +75,7 @@ deno install
 ```
 
 4. **Run Project:** To run the JSON parser, you can either use the local json
-   file or parse an api response from url directly as follows: 1.
+   file or parse an api response from url directly as follows:
    - **For viewing all available commands**
      ```bash
      deno run main.ts --help
