@@ -1,27 +1,155 @@
-import { tokenizer } from './tokenizer.ts';
-import { parser } from './parser.ts';
+import { tokenizer } from "./tokenizer.ts";
+import { parser } from "./parser.ts";
+
+// Native ANSI color codes
+const colors = {
+  red: (str: string) => `\x1b[31m${str}\x1b[0m`,
+  green: (str: string) => `\x1b[32m${str}\x1b[0m`,
+  blue: (str: string) => `\x1b[34m${str}\x1b[0m`,
+  yellow: (str: string) => `\x1b[33m${str}\x1b[0m`,
+  bold: (str: string) => `\x1b[1m${str}\x1b[0m`,
+};
 
 async function fetchJson(url: string): Promise<string> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch JSON: ${response.statusText}`);
+  try {
+    console.log(colors.blue("Fetching JSON from URL..."));
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch JSON: ${response.statusText}`);
+    }
+    console.log(colors.green("✓ Successfully fetched JSON"));
+    return response.text();
+  } catch (error) {
+    throw new Error(
+      `Failed to fetch JSON: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
   }
-  return response.text();
 }
 
-async function main(input: string) {
-  let jsonString: string;
+function printHelp(): void {
+  console.log(colors.bold("\nJSON Parser CLI\n"));
+  console.log("Usage:");
+  console.log(
+    "  deno run --allow-read --allow-net main.ts [options] <input>\n",
+  );
+  console.log("Options:");
+  console.log("  --help, -h     Show this help message");
+  console.log("  --version, -v  Show version number");
+  console.log("  --pretty, -p   Pretty print the output");
+  console.log("  --watch, -w    Watch for changes and output parsed result\n");
+  console.log("Input:");
+  console.log("  Can be either a local file path or a URL\n");
+  console.log("Examples:");
+  console.log("  deno run --allow-read main.ts ./data.json");
+  console.log(
+    "  deno run --allow-net main.ts https://api.example.com/data.json",
+  );
+  console.log("  deno run --allow-read main.ts --pretty ./data.json\n");
+}
 
-  if (input.startsWith('http://') || input.startsWith('https://')) {
-    jsonString = await fetchJson(input);
-  } else {
-    jsonString = await Deno.readTextFile(input);
+function printVersion(): void {
+  console.log("json-parser v1.0.0");
+}
+
+async function main() {
+  const args = Deno.args;
+
+  // Handle no arguments
+  if (args.length === 0) {
+    console.error(colors.red("Error: No input provided"));
+    printHelp();
+    Deno.exit(1);
   }
 
-  console.log(parser(tokenizer(jsonString)));
+  // Parse command line options
+  let prettyPrint = false;
+  let watchMode = false;
+  let input = "";
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+
+    switch (arg) {
+      case "--help":
+      case "-h":
+        printHelp();
+        Deno.exit(0);
+
+      case "--version":
+      case "-v":
+        printVersion();
+        Deno.exit(0);
+
+      case "--pretty":
+      case "-p":
+        prettyPrint = true;
+        break;
+
+      case "--watch":
+      case "-w":
+        watchMode = true;
+        break;
+
+      default:
+        if (!input && !arg.startsWith("-")) {
+          input = arg;
+        }
+    }
+  }
+
+  if (!input) {
+    console.error(colors.red("Error: No input file or URL provided"));
+    printHelp();
+    Deno.exit(1);
+  }
+
+  try {
+    let jsonString: string;
+
+    // Handle URL or file input
+    if (input.startsWith("http://") || input.startsWith("https://")) {
+      jsonString = await fetchJson(input);
+    } else {
+      console.log(colors.blue("Reading file..."));
+      jsonString = await Deno.readTextFile(input);
+      console.log(colors.green("✓ File read successfully"));
+    }
+
+    console.log(colors.blue("Tokenizing..."));
+    const tokens = tokenizer(jsonString);
+    console.log(colors.green("✓ Tokenization complete"));
+
+    console.log(colors.blue("Parsing..."));
+    const result = parser(tokens);
+    console.log(colors.green("✓ Parsing complete\n"));
+
+    // Output the result only if watchMode is enabled
+    if (watchMode) {
+      if (prettyPrint) {
+        console.log(JSON.stringify(result, null, 2));
+      } else {
+        console.log(JSON.stringify(result));
+      }
+    }
+  } catch (error) {
+    console.error(
+      colors.red(
+        `\nError: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+    );
+    Deno.exit(1);
+  }
 }
 
 if (import.meta.main) {
-  const input = Deno.args[0]; // Get the input from command line arguments
-  main(input).catch(console.error);
+  main().catch((error) => {
+    console.error(
+      colors.red(
+        `\nError: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+    );
+    Deno.exit(1);
+  });
 }
