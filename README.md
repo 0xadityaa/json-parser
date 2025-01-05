@@ -115,3 +115,15 @@ Coverage report will be generated in `cov_profile` directory, and output should
 look like this:
 
 <img width="367" alt="errors ts" src="https://github.com/user-attachments/assets/359f25ea-0cfe-432d-9651-f3752f10b001" />
+
+##### Performance benchmarks
+
+The performance benchmarks are defined in `main_benchmarks.ts`. These benchmarks
+are used to measure the performance of all the components parser, tokenizer, API
+fetch and file read.
+
+You can run performance benchmarks by running following command:
+
+```bash
+deno bench main_benchmarks.ts
+```
