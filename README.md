@@ -93,7 +93,9 @@ deno install
      deno run --allow-read main.ts --pretty ./data.json -w
      ```
 
-## Running Tests
+## Testing & Benchmarking
+
+### _Running Tests_
 
 To ensure the parser is valid and follows all the grammer for JSON defined in
 the _ECMA-404 The JSON Data Interchange Standard_ there are tests defined in
@@ -103,20 +105,24 @@ the _ECMA-404 The JSON Data Interchange Standard_ there are tests defined in
 deno test --allow-read --allow-net main_test.ts
 ```
 
+All the tests present in `main_test.ts` should run and pass (ideally 🙃) and output should look like:
+
+<img width="838" alt="image" src="https://github.com/user-attachments/assets/8c9c6695-2efa-4266-8d99-1b5e4a441a0e" />
+
+### _Test coverage profile_
+
 To generate/check test coverage, run following command:
 
 ```bash
 deno test --allow-read --allow-net main_test.ts --coverage=cov_profile && deno coverage cov_profile
 ```
 
-##### Test coverage profile
-
 Coverage report will be generated in `cov_profile` directory, and output should
 look like this:
 
 <img width="367" alt="errors ts" src="https://github.com/user-attachments/assets/359f25ea-0cfe-432d-9651-f3752f10b001" />
 
-##### Performance benchmarks
+### _Performance benchmarks_
 
 The performance benchmarks are defined in `main_benchmarks.ts`. These benchmarks
 are used to measure the performance of all the components parser, tokenizer, API
@@ -127,3 +133,8 @@ You can run performance benchmarks by running following command:
 ```bash
 deno bench main_benchmarks.ts
 ```
+
+Benchmarks for all the conditions in `main_benchmarks.ts` should run and you should see something like:
+
+![image](https://github.com/user-attachments/assets/a714ce54-0b30-4d19-805d-3e07da339725)
+
