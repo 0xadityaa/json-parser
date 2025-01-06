@@ -76,6 +76,7 @@ async function benchmarkJson(input: string) {
   );
 
   const parseStart = performance.now();
+  // deno-lint-ignore no-unused-vars
   const result = parser(tokens);
   const parseEnd = performance.now();
   console.log(`Time to parse: ${(parseEnd - parseStart).toFixed(2)} ms`);
@@ -123,6 +124,7 @@ async function main() {
         watchMode = true;
         break;
 
+      // deno-lint-ignore no-fallthrough
       case "--benchmark":
         await benchmarkJson(input);
         Deno.exit(0);

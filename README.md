@@ -15,10 +15,12 @@ You can parse local JSON files as well as the JSON from an api endpoint.
       ├── parser.ts        # Contains the parser logic
       ├── tokenizer.ts     # Contains the tokenizer logic
       ├── types.ts         # Type definitions for tokens and AST nodes
+      ├── errors.ts        # Type definitions for parser and tokenizer errors
       └── utils.ts         # Utility functions for type checking
       │
-      ├── main_test.ts     # Contains tests for the parser and tokenizer
-      └── test-data.json   # Sample JSON data for testing
+      ├── main_test.ts       # Contains tests for the parser and tokenizer
+      ├── main_benchmarks.ts # Contains benchmarking tests for the parser and tokenizer
+      └── test-data.json     # Sample JSON data for testing
       │
       ├── deno.json                # Deno configuration file
       ├── .vscode/settings.json    # VSCode settings for Deno
@@ -82,22 +84,25 @@ deno install
      ```
    - **For local json file**
      ```bash
-     deno run --allow-read main.ts ./data.json -w
+     deno run --allow-read main.ts ./path/to/data.json -w
      ```
    - **For api endpoint**
      ```bash
-     deno run --allow-net main.ts https://api.example.com/data.json -w
+     deno run --allow-net main.ts https://api.example.com/ -w
      ```
    - **For prettify json**
      ```bash
      deno run --allow-read main.ts --pretty ./data.json -w
+     ```
+     ```bash
+     deno run --allow-read main.ts --pretty https://api.example.com/ -w
      ```
 
 ## Testing & Benchmarking
 
 ### _Running Tests_
 
-To ensure the parser is valid and follows all the grammer for JSON defined in
+To ensure the parser is valid and follows all the grammar for JSON defined in
 the _ECMA-404 The JSON Data Interchange Standard_ there are tests defined in
 `main_test.ts`. To run this test, run following command:
 
@@ -105,7 +110,8 @@ the _ECMA-404 The JSON Data Interchange Standard_ there are tests defined in
 deno test --allow-read --allow-net main_test.ts
 ```
 
-All the tests present in `main_test.ts` should run and pass (ideally 🙃) and output should look like:
+All the tests present in `main_test.ts` should run and pass (ideally 🙃) and
+output should look like:
 
 <img width="838" alt="image" src="https://github.com/user-attachments/assets/8c9c6695-2efa-4266-8d99-1b5e4a441a0e" />
 
@@ -134,7 +140,7 @@ You can run performance benchmarks by running following command:
 deno bench main_benchmarks.ts
 ```
 
-Benchmarks for all the conditions in `main_benchmarks.ts` should run and you should see something like:
+Benchmarks for all the conditions in `main_benchmarks.ts` should run and you
+should see something like:
 
 ![image](https://github.com/user-attachments/assets/a714ce54-0b30-4d19-805d-3e07da339725)
-
